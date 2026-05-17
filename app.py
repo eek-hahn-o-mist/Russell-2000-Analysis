@@ -144,7 +144,6 @@ with tab2:
     @st.cache_data
     def load_mexico_data():
         mexico_regions = {
-            # Standardized strings matching the upcoming GeoJSON boundary descriptors
             "State/Region": ["Distrito Federal", "México", "Nuevo León", "Jalisco"],
             "Display_Name": ["CDMX (Valle de México)", "Estado de México", "Nuevo León", "Jalisco"],
             "Registered_Vehicles_M": [5.6, 8.1, 2.7, 4.1],
@@ -154,10 +153,4 @@ with tab2:
             "Fine_Complexity_Score": [9.5, 8.5, 6.0, 7.5],  
             "Smartphone_Penetration_Pct": [88.5, 79.2, 86.0, 82.4]
         }
-        return pd.DataFrame(mexico_regions)
-
-    df_mexico = load_mexico_data()
-
-    # --- 2. CONTEXTUAL SIDEBAR CONTROLS ---
-    st.sidebar.subheader("Mexico Digital Wallet Weights")
-    w_fines = st.sidebar.slider("Fine Complexity
+        return pd.DataFrame(mexico_
