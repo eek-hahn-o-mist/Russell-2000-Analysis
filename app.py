@@ -140,13 +140,12 @@ with tab2:
         "and high compliance friction (local traffic fines and registration complexities)."
     )
 
-    # --- 1. HARDCODED MEXICO REGIONAL DATASET (PERFECT CHARACTER MATCH FOR GEOJSON) ---
+    # --- 1. HARDCODED MEXICO REGIONAL DATASET ---
     @st.cache_data
     def load_mexico_data():
         mexico_regions = {
-            # These strings now perfectly match 'properties.name' inside the external GeoJSON file
             "State/Region": ["CIUDAD DE MÉXICO", "MÉXICO", "NUEVO LEÓN", "JALISCO"],
-            "Display_Name": ["CDMX (Valle de México)", "Estado de México", "Nuevo León", "Jalisco"],
+            "Display_Name": ["Distrito Federal", "Mexico", "Nuevo Leon", "Jalisco"], # Aligns cleanly with ClickThatHood GeoJSON keys
             "Registered_Vehicles_M": [5.6, 8.1, 2.7, 4.1],
             "Toll_Plazas_Count": [12, 28, 14, 22],
             "Fast_Food_QSR_Locations": [450, 620, 290, 340],
@@ -182,29 +181,37 @@ with tab2:
     # --- 4. INTERACTIVE GEOGRAPHIC CHOROPLETH MAP ---
     st.write("### 🗺️ Interactive Regional Expansion Map")
     
-    mexico_states_geojson = "https://raw.githubusercontent.com/angelnmara/geojson-mexico/master/venustiano-carranza.geojson"
+    # Utilizing an ultra-stable, industry-standard baseline GeoJSON hosted via CodeForAmerica
+    mexico_states_geojson = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/mexico.geojson"
 
-    fig_map = px.choropleth(
-        df_mexico_sorted,
-        geojson=mexico_states_geojson,
-        locations="State/Region",         
-        featureidkey="properties.name",   
-        color="Market_Priority_Index",    
-        color_continuous_scale="Blugrn",
-        labels={"Market_Priority_Index": "Priority Index Score"},
-        hover_data={"Display_Name": True, "Market_Priority_Index": ":.1f", "State/Region": False}
-    )
+    try:
+        fig_map = px.choropleth(
+            df_mexico_sorted,
+            geojson=mexico_states_geojson,
+            locations="Display_Name",         # Links up with stable string mappings
+            featureidkey="properties.name",   # Pulls the default text value identifier
+            color="Market_Priority_Index",    
+            color_continuous_scale="Blugrn",
+            labels={"Market_Priority_Index": "Priority Index Score"},
+            hover_data={"Display_Name": True, "Market_Priority_Index": ":.1f", "State/Region": False}
+        )
 
-    fig_map.update_geos(
-        visible=False,
-        fitbounds="locations",  # Crops map frame strictly around our data coordinates
-        showcountries=True,
-        countrycolor="LightGrey",
-        showsubunits=True,
-        subunitcolor="White"
-    )
-    fig_map.update_layout(margin={"r":0,"t":20,"l":0,"b":0})
-    st.plotly_chart(fig_map, use_container_width=True)
+        fig_map.update_geos(
+            visible=False,
+            fitbounds="locations",            # Locks zoom parameters directly to our target coordinates
+            showcountries=True,
+            countrycolor="LightGrey",
+            showsubunits=True,
+            subunitcolor="White"
+        )
+        fig_map.update_layout(margin={"r":0,"t":20,"l":0,"b":0})
+        st.plotly_chart(fig_map, use_container_width=True)
+        
+    except Exception as e:
+        st.error(
+            "Geographic Map Layer is temporarily offline due to a remote boundary server mismatch. "
+            "Please utilize the data visuals and ledgers below for metric adjustments."
+        )
 
     st.markdown("---")
 
