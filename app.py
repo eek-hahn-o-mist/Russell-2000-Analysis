@@ -153,4 +153,112 @@ with tab2:
             "Fine_Complexity_Score": [9.5, 8.5, 6.0, 7.5],  
             "Smartphone_Penetration_Pct": [88.5, 79.2, 86.0, 82.4]
         }
-        return pd.DataFrame(mexico_
+        return pd.DataFrame(mexico_regions)
+
+    df_mexico = load_mexico_data()
+
+    # --- 2. CONTEXTUAL SIDEBAR CONTROLS ---
+    st.sidebar.subheader("Mexico Digital Wallet Weights")
+    w_fines = st.sidebar.slider("Fine Complexity Weight", 0.0, 1.0, 0.4, 0.1)
+    w_transit = st.sidebar.slider("Physical Touchpoint Density Weight", 0.0, 1.0, 0.3, 0.1)
+    w_mobile = st.sidebar.slider("Smartphone Penetration Weight", 0.0, 1.0, 0.3, 0.1)
+
+    # --- 3. ALGORITHM: MARKET PENETRATION INDEX ---
+    df_mexico["Physical_Nodes"] = df_mexico["Toll_Plazas_Count"] + df_mexico["Fast_Food_QSR_Locations"]
+    
+    df_mexico["Norm_Fines"] = normalize(df_mexico["Fine_Complexity_Score"])
+    df_mexico["Norm_Nodes"] = normalize(df_mexico["Physical_Nodes"])
+    df_mexico["Norm_Mobile"] = normalize(df_mexico["Smartphone_Penetration_Pct"])
+
+    df_mexico["Market_Priority_Index"] = (
+        (df_mexico["Norm_Fines"] * w_fines) +
+        (df_mexico["Norm_Nodes"] * w_transit) +
+        (df_mexico["Norm_Mobile"] * w_mobile)
+    ) * 100
+    
+    df_mexico_sorted = df_mexico.sort_values(by="Market_Priority_Index", ascending=False)
+
+    # --- 4. INTERACTIVE GEOGRAPHIC CHOROPLETH MAP ---
+    st.write("### 🗺️ Interactive Regional Expansion Map")
+    
+    mexico_states_geojson = "https://raw.githubusercontent.com/angelnmara/geojson-mexico/master/venustiano-carranza.geojson"
+
+    fig_map = px.choropleth(
+        df_mexico_sorted,
+        geojson=mexico_states_geojson,
+        locations="State/Region",         
+        featureidkey="properties.name",   
+        color="Market_Priority_Index",    
+        color_continuous_scale="Blugrn",
+        scope="north america",
+        labels={"Market_Priority_Index": "Priority Index Score"},
+        hover_data={"Display_Name": True, "Market_Priority_Index": ":.1f", "State/Region": False}
+    )
+
+    fig_map.update_geos(
+        showcountries=True, 
+        showcoastlines=True, 
+        fitbounds="locations", 
+        visible=False
+    )
+    fig_map.update_layout(margin={"r":0,"t":20,"l":0,"b":0})
+    st.plotly_chart(fig_map, use_container_width=True)
+
+    st.markdown("---")
+
+    # --- 5. DATA GRIDS & HISTOGRAM ANALYSIS ---
+    m_col1, m_col2 = st.columns([1, 1])
+
+    with m_col1:
+        st.write("### Target Region Priority Ranking")
+        fig_mex_bar = px.bar(
+            df_mexico_sorted, 
+            x="Market_Priority_Index", 
+            y="Display_Name", 
+            orientation='h',
+            labels={"Market_Priority_Index": "Market Expansion Priority Index", "Display_Name": "State"},
+            color="Market_Priority_Index",
+            color_continuous_scale=px.colors.sequential.Blugrn
+        )
+        fig_mex_bar.update_layout(yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(fig_mex_bar, use_container_width=True)
+
+    with m_col2:
+        st.write("### Physical Touchpoints vs. Compliance Complexity")
+        fig_scatter = px.scatter(
+            df_mexico,
+            x="Registered_Vehicles_M",
+            y="Fine_Complexity_Score",
+            size="Physical_Nodes",
+            color="Display_Name",
+            hover_name="Display_Name",
+            labels={
+                "Registered_Vehicles_M": "Registered Fleets (Millions)",
+                "Fine_Complexity_Score": "Fine Bureaucracy Index (1-10)",
+                "Physical_Nodes": "Total Physical Nodes (Tolls + QSR)"
+            },
+            size_max=40
+        )
+        st.plotly_chart(fig_scatter, use_container_width=True)
+
+    st.markdown("---")
+    st.write("### Regional Infrastructure Data Ledger")
+    
+    st.dataframe(df_mexico_sorted[[
+        "Display_Name", "Registered_Vehicles_M", "Toll_Plazas_Count", 
+        "Fast_Food_QSR_Locations", "Annual_Fine_Volume_M", "Smartphone_Penetration_Pct", "Market_Priority_Index"
+    ]].rename(columns={"Display_Name": "State/Region"}).style.format({
+        "Registered_Vehicles_M": "{:.1f}M",
+        "Toll_Plazas_Count": "{:,.0f}",
+        "Fast_Food_QSR_Locations": "{:,.0f}",
+        "Annual_Fine_Volume_M": "{:.1f}M",
+        "Smartphone_Penetration_Pct": "{:.1f}%",
+        "Market_Priority_Index": "{:.1f}"
+    }), use_container_width=True)
+
+    top_mex_region = df_mexico_sorted.iloc[0]["Display_Name"]
+    st.info(
+        f"**Vehicle Wallet Expansion Strategy:** **{top_mex_region}** presents the highest friction-to-volume ratio. "
+        f"Deploying local compliance apps like Auto Chilango or Kigo here yields the highest immediate transaction fee capture "
+        f"due to existing mobile usage trends and regulatory tracking constraints."
+    )
