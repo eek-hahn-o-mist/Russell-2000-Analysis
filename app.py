@@ -140,11 +140,12 @@ with tab2:
         "and high compliance friction (local traffic fines and registration complexities)."
     )
 
-    # --- 1. HARDCODED MEXICO REGIONAL DATASET ---
+    # --- 1. HARDCODED MEXICO REGIONAL DATASET (MATCHES GEOJSON KEYS) ---
     @st.cache_data
     def load_mexico_data():
         mexico_regions = {
-            "State/Region": ["Distrito Federal", "México", "Nuevo León", "Jalisco"],
+            # Standardized UPPERCASE strings matching the GeoJSON 'properties.name' keys perfectly
+            "State/Region": ["DISTRITO FEDERAL", "MEXICO", "NUEVO LEON", "JALISCO"],
             "Display_Name": ["CDMX (Valle de México)", "Estado de México", "Nuevo León", "Jalisco"],
             "Registered_Vehicles_M": [5.6, 8.1, 2.7, 4.1],
             "Toll_Plazas_Count": [12, 28, 14, 22],
@@ -190,16 +191,17 @@ with tab2:
         featureidkey="properties.name",   
         color="Market_Priority_Index",    
         color_continuous_scale="Blugrn",
-        scope="north america",
         labels={"Market_Priority_Index": "Priority Index Score"},
         hover_data={"Display_Name": True, "Market_Priority_Index": ":.1f", "State/Region": False}
     )
 
     fig_map.update_geos(
-        showcountries=True, 
-        showcoastlines=True, 
-        fitbounds="locations", 
-        visible=False
+        visible=False,
+        fitbounds="locations",
+        showcountries=True,
+        countrycolor="LightGrey",
+        showsubunits=True,
+        subunitcolor="White"
     )
     fig_map.update_layout(margin={"r":0,"t":20,"l":0,"b":0})
     st.plotly_chart(fig_map, use_container_width=True)
