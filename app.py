@@ -140,12 +140,12 @@ with tab2:
         "and high compliance friction (local traffic fines and registration complexities)."
     )
 
-    # --- 1. HARDCODED MEXICO REGIONAL DATASET (MATCHES GEOJSON KEYS) ---
+    # --- 1. HARDCODED MEXICO REGIONAL DATASET (PERFECT CHARACTER MATCH FOR GEOJSON) ---
     @st.cache_data
     def load_mexico_data():
         mexico_regions = {
-            # Standardized UPPERCASE strings matching the GeoJSON 'properties.name' keys perfectly
-            "State/Region": ["DISTRITO FEDERAL", "MEXICO", "NUEVO LEON", "JALISCO"],
+            # These strings now perfectly match 'properties.name' inside the external GeoJSON file
+            "State/Region": ["CIUDAD DE MÉXICO", "MÉXICO", "NUEVO LEÓN", "JALISCO"],
             "Display_Name": ["CDMX (Valle de México)", "Estado de México", "Nuevo León", "Jalisco"],
             "Registered_Vehicles_M": [5.6, 8.1, 2.7, 4.1],
             "Toll_Plazas_Count": [12, 28, 14, 22],
@@ -197,7 +197,7 @@ with tab2:
 
     fig_map.update_geos(
         visible=False,
-        fitbounds="locations",
+        fitbounds="locations",  # Crops map frame strictly around our data coordinates
         showcountries=True,
         countrycolor="LightGrey",
         showsubunits=True,
