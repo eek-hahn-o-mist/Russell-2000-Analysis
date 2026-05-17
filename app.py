@@ -102,15 +102,7 @@ with col1:
     st.write("### Historical vs. Projected Spend Volumes ($ Billions)")
     fig = px.bar(df_all, x="Year", y="Spend_B", color="Segment", barmode="group",
                  labels={"Spend_B": "Non-Salary Spend ($B)", "Year": "Fiscal Year"},
-                 
-                 
-                 # To this (Option A: Clean Corporate Blues/Grays):
-                 color_discrete_sequence=px.colors.qualitative.Plotly
-
-                 # Or this (Option B: Crisp, Modern Tech Contrast):
-                 color_discrete_sequence=px.colors.qualitative.Prism
-
-    
+                 color_discrete_sequence=px.colors.qualitative.Plotly)  # Updated to official native palette
     st.plotly_chart(fig, use_container_width=True)
 
 # Calculate Attractiveness Score based on 2027 projections
